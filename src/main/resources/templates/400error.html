@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>404 Not Found Error</title>
+    <script src="http://cdn.jsdelivr.net/webjars/org.webjars/jquery/3.2.1/jquery.min.js"
+            th:src="@{/webjars/jquery/3.2.1/jquery.min.js}"></script>
+    <script src="http://cdn.jsdelivr.net/webjars/org.webjars.bower/popper.js/1.12.5/dist/umd/popper.min.js"
+            th:src="@{/webjars/popper.js/1.12.5/dist/umd/popper.min.js}"></script>
+    <link rel="stylesheet" href="http://cdn.jsdelivr.net/webjars/org.webjars/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+          th:href="@{/webjars/bootstrap/4.0.0-beta/css/bootstrap.min.css}">
+    <script src="http://cdn.jsdelivr.net/webjars/org.webjars/bootstrap/4.0.0-beta/js/bootstrap.min.js"
+            th:src="@{/webjars/bootstrap/4.0.0-beta/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div class="container-fluid" style="margin-top: 20px">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <h1>400 Bad Request</h1>
+            <p th:text="${exception.message}"></p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
