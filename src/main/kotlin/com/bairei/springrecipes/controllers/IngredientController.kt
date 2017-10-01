@@ -32,7 +32,7 @@ class IngredientController constructor(private val recipeService: RecipeService,
     @GetMapping("/recipe/{recipeId}/ingredient/{id}/show")
     fun showRecipeIngredient(@PathVariable recipeId: String,
                              @PathVariable id: String, model: Model) : String{
-        model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id))
+        model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id).block())
         return "recipe/ingredient/show"
     }
 
@@ -40,8 +40,9 @@ class IngredientController constructor(private val recipeService: RecipeService,
     @GetMapping("/recipe/{recipeId}/ingredient/{id}/update")
     fun updateRecipeIngredient(@PathVariable recipeId: String, @PathVariable id: String,
                                model: Model) : String{
-        model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id))
-        model.addAttribute("uomList", unitOfMeasureService.listAllUoms())
+        log.debug("#### $id #### $recipeId ####")
+        model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id).block())
+        model.addAttribute("uomList", unitOfMeasureService.listAllUoms().collectList().block())
 
         return "recipe/ingredient/ingredientform"
     }
@@ -60,7 +61,7 @@ class IngredientController constructor(private val recipeService: RecipeService,
 
         // init uom
         ingredientCommand.uom = UnitOfMeasureCommand()
-        model.addAttribute("uomList", unitOfMeasureService.listAllUoms())
+        model.addAttribute("uomList", unitOfMeasureService.listAllUoms().collectList().block())
 
         return "recipe/ingredient/ingredientform"
     }
@@ -68,7 +69,8 @@ class IngredientController constructor(private val recipeService: RecipeService,
 
     @GetMapping("recipe/{recipeId}/ingredient/{id}/delete")
     fun deleteRecipe(@PathVariable recipeId: String, @PathVariable id: String) : String{
-        ingredientService.deleteIngredientFromRecipeById(recipeId, id)
+        log.debug("$recipeId $id")
+        ingredientService.deleteById(recipeId, id).block()
         log.debug("Deleting ingredient id: $id, recipeId: $recipeId")
         return "redirect:/recipe/$recipeId/ingredients/"
     }
@@ -76,7 +78,8 @@ class IngredientController constructor(private val recipeService: RecipeService,
 
     @PostMapping("/recipe/{recipeId}/ingredient")
     fun saveOrUpdate(@ModelAttribute command: IngredientCommand) : String{
-        val savedCommand = ingredientService.saveIngredientCommand(command)!!
+        log.debug("#### ${command.id} #### ${command.recipeId} ####")
+        val savedCommand = ingredientService.saveIngredientCommand(command).block()!!
 
         log.debug("saved recipe id: " + savedCommand.recipeId)
         log.debug("saved ingredient id: " + savedCommand.id)

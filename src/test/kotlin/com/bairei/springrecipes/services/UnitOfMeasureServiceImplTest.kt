@@ -3,18 +3,21 @@ package com.bairei.springrecipes.services
 import com.bairei.springrecipes.converters.UnitOfMeasureToUnitOfMeasureCommand
 import com.bairei.springrecipes.domain.UnitOfMeasure
 import com.bairei.springrecipes.repositories.UnitOfMeasureRepository
+import com.bairei.springrecipes.repositories.reactive.UnitOfMeasureReactiveRepository
+import com.nhaarman.mockito_kotlin.verify
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
+import reactor.core.publisher.Flux
 import java.util.*
 
 class UnitOfMeasureServiceImplTest {
 
     @Mock
-    lateinit var unitOfMeasureRepository: UnitOfMeasureRepository
+    lateinit var unitOfMeasureRepository: UnitOfMeasureReactiveRepository
 
     lateinit var unitOfMeasureToUnitOfMeasureCommand : UnitOfMeasureToUnitOfMeasureCommand
     lateinit var service: UnitOfMeasureService
@@ -43,14 +46,14 @@ class UnitOfMeasureServiceImplTest {
         uom2.id = "2"
         unitOfMeasures.add(uom2)
 
-        `when`(unitOfMeasureRepository.findAll()).thenReturn(unitOfMeasures)
+        `when`(unitOfMeasureRepository.findAll()).thenReturn(Flux.just(uom1,uom2))
 
         //when
-        val commands = service.listAllUoms()
+        val commands = service.listAllUoms().collectList().block()
 
         //then
-        assertEquals(2, commands.size.toLong())
-        verify<UnitOfMeasureRepository>(unitOfMeasureRepository, times(1)).findAll()
+        assertEquals(2, commands!!.size.toLong())
+        verify(unitOfMeasureRepository, times(1)).findAll()
     }
 
 }

@@ -18,7 +18,7 @@
     <div class="row">
         <div class="col-md-6 mx-auto">
             <!--/*@thymesVar id="ingredient" type="com.bairei.springrecipes.commands.IngredientCommand"*/-->
-            <form  th:object="${ingredient}" th:action="@{'/recipe/' + ${ingredient.recipeId} + '/ingredient'} ">
+            <form th:object="${ingredient}" th:action="@{'/recipe/' + ${ingredient.recipeId} + '/ingredient'} " method="post">
                 <input type="hidden" th:field="*{id}"/>
                     <div class="card border-primary mb-2">
                         <div class="card-header bg-primary text-white">

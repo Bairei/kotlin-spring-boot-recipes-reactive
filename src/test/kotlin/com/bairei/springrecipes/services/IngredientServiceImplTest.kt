@@ -1,6 +1,7 @@
 package com.bairei.springrecipes.services
 
 import com.bairei.springrecipes.commands.IngredientCommand
+import com.bairei.springrecipes.commands.UnitOfMeasureCommand
 import com.bairei.springrecipes.converters.IngredientCommandToIngredient
 import com.bairei.springrecipes.converters.IngredientToIngredientCommand
 import com.bairei.springrecipes.converters.UnitOfMeasureCommandToUnitOfMeasure
@@ -8,37 +9,35 @@ import com.bairei.springrecipes.converters.UnitOfMeasureToUnitOfMeasureCommand
 import com.bairei.springrecipes.domain.Ingredient
 import com.bairei.springrecipes.domain.Recipe
 import com.bairei.springrecipes.repositories.RecipeRepository
-import com.bairei.springrecipes.repositories.UnitOfMeasureRepository
-import org.junit.Assert.assertEquals
+import com.bairei.springrecipes.repositories.reactive.RecipeReactiveRepository
+import com.bairei.springrecipes.repositories.reactive.UnitOfMeasureReactiveRepository
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mock
-import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import java.util.*
+import reactor.core.publisher.Mono
 
+import java.util.Optional
+
+import org.junit.Assert.assertEquals
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.*
 
 class IngredientServiceImplTest {
+
+    private val ingredientToIngredientCommand: IngredientToIngredientCommand
+    private val ingredientCommandToIngredient: IngredientCommandToIngredient
+
+    @Mock
+    lateinit var recipeReactiveRepository: RecipeReactiveRepository
 
     @Mock
     lateinit var recipeRepository: RecipeRepository
 
     @Mock
-    lateinit var unitOfMeasureRepository: UnitOfMeasureRepository
-
-    @Mock
-    lateinit var unitOfMeasureService: UnitOfMeasureService
+    lateinit var unitOfMeasureRepository: UnitOfMeasureReactiveRepository
 
     lateinit var ingredientService: IngredientService
-
-    private val ingredientToIngredientCommand: IngredientToIngredientCommand
-
-    private val ingredientCommandToIngredient : IngredientCommandToIngredient
-
-    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     //init converters
     init {
@@ -51,7 +50,10 @@ class IngredientServiceImplTest {
     fun setUp() {
         MockitoAnnotations.initMocks(this)
 
-        ingredientService = IngredientServiceImpl(ingredientToIngredientCommand, recipeRepository, ingredientCommandToIngredient, unitOfMeasureRepository)
+        ingredientService = IngredientServiceImpl(ingredientToIngredientCommand = ingredientToIngredientCommand,
+                ingredientCommandToIngredient = ingredientCommandToIngredient,
+                recipeReactiveRepository = recipeReactiveRepository,
+                unitOfMeasureRepository = unitOfMeasureRepository, recipeRepository = recipeRepository)
     }
 
     @Test
@@ -61,7 +63,7 @@ class IngredientServiceImplTest {
 
     @Test
     @Throws(Exception::class)
-    fun findByRecipeIdAndIngredientIdHappyPath() {
+    fun findByRecipeIdAndRecipeIdHappyPath() {
         //given
         val recipe = Recipe()
         recipe.id = "1"
@@ -80,15 +82,16 @@ class IngredientServiceImplTest {
         recipe.addIngredient(ingredient3)
         val recipeOptional = Optional.of(recipe)
 
-        `when`(recipeRepository.findById(anyString())).thenReturn(recipeOptional)
+        `when`(recipeReactiveRepository.findById(anyString())).thenReturn(Mono.just(recipe))
 
         //then
-        val ingredientCommand = ingredientService.findByRecipeIdAndIngredientId("1", "3")
+        val ingredientCommand = ingredientService.findByRecipeIdAndIngredientId("1", "3").block()
 
         //when
-        assertEquals("3", ingredientCommand.id)
-        verify<RecipeRepository>(recipeRepository, times(1)).findById(anyString())
+        assertEquals("3", ingredientCommand!!.id)
+        verify<RecipeReactiveRepository>(recipeReactiveRepository, times(1)).findById(anyString())
     }
+
 
     @Test
     @Throws(Exception::class)
@@ -97,6 +100,8 @@ class IngredientServiceImplTest {
         val command = IngredientCommand()
         command.id = "3"
         command.recipeId = "2"
+        command.uom = UnitOfMeasureCommand()
+        command.uom.id = "1234"
 
         val recipeOptional = Optional.of(Recipe())
 
@@ -105,36 +110,35 @@ class IngredientServiceImplTest {
         savedRecipe.ingredients.iterator().next().id = "3"
 
         `when`(recipeRepository.findById(anyString())).thenReturn(recipeOptional)
-        `when`<Recipe>(recipeRepository.save(com.nhaarman.mockito_kotlin.any())).thenReturn(savedRecipe)
+        `when`(recipeReactiveRepository.save<Recipe>(any())).thenReturn(Mono.just(savedRecipe))
 
         //when
-        val savedCommand = ingredientService.saveIngredientCommand(command)
+        val savedCommand = ingredientService.saveIngredientCommand(command).block()
 
         //then
         assertEquals("3", savedCommand!!.id)
-        verify(recipeRepository, times(1)).findById(anyString())
-        verify(recipeRepository, times(1)).save(any(Recipe::class.java))
+        verify<RecipeRepository>(recipeRepository, times(1)).findById(anyString())
+        verify<RecipeReactiveRepository>(recipeReactiveRepository, times(1)).save<Recipe>(any(Recipe::class.java))
 
     }
 
     @Test
-    fun testDeleteById(){
-        // given
+    @Throws(Exception::class)
+    fun testDeleteById() {
+        //given
         val recipe = Recipe()
         val ingredient = Ingredient()
         ingredient.id = "3"
         recipe.addIngredient(ingredient)
-//        ingredient.recipe = recipe
         val recipeOptional = Optional.of(recipe)
 
         `when`(recipeRepository.findById(anyString())).thenReturn(recipeOptional)
 
         //when
-        ingredientService.deleteIngredientFromRecipeById("1", "3")
+        ingredientService.deleteById("1", "3")
 
         //then
-        verify(recipeRepository, times(1)).findById(anyString())
-        verify(recipeRepository, times(1)).save(any(Recipe::class.java))
+        verify<RecipeRepository>(recipeRepository, times(1)).findById(anyString())
+        verify<RecipeRepository>(recipeRepository, times(1)).save<Recipe>(any(Recipe::class.java))
     }
-
 }

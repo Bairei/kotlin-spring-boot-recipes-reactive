@@ -2,20 +2,22 @@ package com.bairei.springrecipes.services
 
 import com.bairei.springrecipes.commands.UnitOfMeasureCommand
 import com.bairei.springrecipes.converters.UnitOfMeasureToUnitOfMeasureCommand
-import com.bairei.springrecipes.repositories.UnitOfMeasureRepository
+import com.bairei.springrecipes.repositories.reactive.UnitOfMeasureReactiveRepository
 import org.springframework.stereotype.Service
-import java.util.stream.Collectors.toSet
-import java.util.stream.StreamSupport
+import reactor.core.publisher.Flux
 
 
 @Service
-class UnitOfMeasureServiceImpl(private val unitOfMeasureRepository: UnitOfMeasureRepository, private val unitOfMeasureToUnitOfMeasureCommand: UnitOfMeasureToUnitOfMeasureCommand) : UnitOfMeasureService {
+class UnitOfMeasureServiceImpl(private val unitOfMeasureRepository: UnitOfMeasureReactiveRepository, private val unitOfMeasureToUnitOfMeasureCommand: UnitOfMeasureToUnitOfMeasureCommand) : UnitOfMeasureService {
 
-    override fun listAllUoms(): Set<UnitOfMeasureCommand> {
+    override fun listAllUoms(): Flux<UnitOfMeasureCommand> = unitOfMeasureRepository.findAll()
+            .map(unitOfMeasureToUnitOfMeasureCommand::convert)
 
-        return StreamSupport.stream(unitOfMeasureRepository.findAll()
-                .spliterator(), false)
-                .map<UnitOfMeasureCommand>( { unitOfMeasureToUnitOfMeasureCommand.convert(it) })
-                .collect(toSet())
-    }
+//    override fun listAllUoms(): Flux<UnitOfMeasureCommand> = StreamSupport
+//                .stream(unitOfMeasureRepository.findAll()
+//                .spliterator(), false)
+//                .map<UnitOfMeasureCommand>( { unitOfMeasureToUnitOfMeasureCommand.convert(it) })
+//                .collect(toFlex())
+
+
 }

@@ -1,7 +1,8 @@
 package com.bairei.springrecipes.services
 
 import com.bairei.springrecipes.commands.UnitOfMeasureCommand
+import reactor.core.publisher.Flux
 
 interface UnitOfMeasureService {
-    fun listAllUoms() : Set<UnitOfMeasureCommand>
+    fun listAllUoms() : Flux<UnitOfMeasureCommand>
 }

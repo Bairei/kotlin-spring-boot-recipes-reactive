@@ -17,11 +17,10 @@ import org.junit.Ignore
 /**
  * Created by jt on 6/21/17.
  */
-@Ignore
+
 @RunWith(SpringRunner::class)
 @SpringBootTest
-class RecipeServiceIT { // since 1.2-M2 it's required to give it 'open' prefix, otherwise
-                             // it throws IllegalArgumentException (cannot subclass final class)
+class RecipeServiceIT {
     @Autowired
     private lateinit var recipeService: RecipeService
 

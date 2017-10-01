@@ -19,12 +19,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 
 class IngredientControllerTest {
-
-    @Mock
-    lateinit var recipeService: RecipeService
 
     @Mock
     lateinit var ingredientService: IngredientService
@@ -32,13 +31,18 @@ class IngredientControllerTest {
     @Mock
     lateinit var unitOfMeasureService: UnitOfMeasureService
 
-    lateinit var controller : IngredientController
+    @Mock
+    lateinit var recipeService: RecipeService
+
+    lateinit var controller: IngredientController
 
     lateinit var mockMvc: MockMvc
 
     @Before
-    fun setUp(){
+    @Throws(Exception::class)
+    fun setUp() {
         MockitoAnnotations.initMocks(this)
+
         controller = IngredientController(recipeService, ingredientService, unitOfMeasureService)
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
     }
@@ -66,7 +70,7 @@ class IngredientControllerTest {
         val ingredientCommand = IngredientCommand()
 
         // when
-        `when`(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString())).thenReturn(ingredientCommand)
+        `when`(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString())).thenReturn(Mono.just(ingredientCommand))
 
         // then
         mockMvc.perform(get("/recipe/1/ingredient/2/show"))
@@ -83,7 +87,7 @@ class IngredientControllerTest {
 
         // when
         `when`(recipeService.findCommandById(anyString())).thenReturn(recipeCommand)
-        `when`(unitOfMeasureService.listAllUoms()).thenReturn(emptyArray<UnitOfMeasureCommand>().toHashSet())
+        `when`(unitOfMeasureService.listAllUoms()).thenReturn(Flux.just(UnitOfMeasureCommand()))
 
         // then
         mockMvc.perform(get("/recipe/1/ingredient/new"))
@@ -101,8 +105,8 @@ class IngredientControllerTest {
         val ingredientCommand = IngredientCommand()
 
         //when
-        `when`(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString())).thenReturn(ingredientCommand)
-        `when`(unitOfMeasureService.listAllUoms()).thenReturn(emptySet<UnitOfMeasureCommand>().toHashSet())
+        `when`(ingredientService.findByRecipeIdAndIngredientId(anyString(), anyString())).thenReturn(Mono.just(ingredientCommand))
+        `when`(unitOfMeasureService.listAllUoms()).thenReturn(Flux.just(UnitOfMeasureCommand()))
 
         //then
         mockMvc.perform(get("/recipe/1/ingredient/2/update"))
@@ -114,11 +118,14 @@ class IngredientControllerTest {
 
     @Test
     fun testDeleteIngredient(){
+
+        `when`(ingredientService.deleteById(anyString(), anyString())).thenReturn(Mono.empty())
+
         mockMvc.perform(get("/recipe/1/ingredient/2/delete"))
                 .andExpect(status().is3xxRedirection)
                 .andExpect(view().name("redirect:/recipe/1/ingredients/"))
 
-        verify(ingredientService, times(1)).deleteIngredientFromRecipeById(anyString(), anyString())
+        verify(ingredientService, times(1)).deleteById(anyString(), anyString())
     }
 
     @Test
@@ -130,7 +137,7 @@ class IngredientControllerTest {
         command.recipeId = "2"
 
         //when
-        `when`(ingredientService.saveIngredientCommand(any())).thenReturn(command)
+        `when`(ingredientService.saveIngredientCommand(any())).thenReturn(Mono.just(command))
 
         //then
         mockMvc.perform(post("/recipe/2/ingredient")
@@ -142,6 +149,4 @@ class IngredientControllerTest {
                 .andExpect(view().name("redirect:/recipe/2/ingredient/3/show"))
 
     }
-
-
 }
