@@ -6,10 +6,8 @@ import com.bairei.springrecipes.commands.UnitOfMeasureCommand
 import com.bairei.springrecipes.services.IngredientService
 import com.bairei.springrecipes.services.RecipeService
 import com.bairei.springrecipes.services.UnitOfMeasureService
-import com.nhaarman.mockito_kotlin.any
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
@@ -137,7 +135,7 @@ class IngredientControllerTest {
         command.recipeId = "2"
 
         //when
-        `when`(ingredientService.saveIngredientCommand(any())).thenReturn(Mono.just(command))
+        `when`(ingredientService.saveIngredientCommand(com.nhaarman.mockito_kotlin.any())).thenReturn(Mono.just(command))
 
         //then
         mockMvc.perform(post("/recipe/2/ingredient")

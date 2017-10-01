@@ -5,19 +5,16 @@ import com.bairei.springrecipes.converters.IngredientCommandToIngredient
 import com.bairei.springrecipes.converters.IngredientToIngredientCommand
 import com.bairei.springrecipes.domain.Ingredient
 import com.bairei.springrecipes.domain.Recipe
-import com.bairei.springrecipes.repositories.RecipeRepository
 import com.bairei.springrecipes.repositories.reactive.RecipeReactiveRepository
 import com.bairei.springrecipes.repositories.reactive.UnitOfMeasureReactiveRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import java.util.*
 
 
 @Service
 class IngredientServiceImpl (private val ingredientToIngredientCommand: IngredientToIngredientCommand,
-                             private val recipeRepository: RecipeRepository,
                              private val ingredientCommandToIngredient: IngredientCommandToIngredient,
                              private val unitOfMeasureRepository: UnitOfMeasureReactiveRepository,
                              private val recipeReactiveRepository: RecipeReactiveRepository) : IngredientService {
@@ -40,15 +37,14 @@ class IngredientServiceImpl (private val ingredientToIngredientCommand: Ingredie
 
 
     override fun saveIngredientCommand(command: IngredientCommand): Mono<IngredientCommand> {
-        val recipeOptional = recipeRepository.findById(command.recipeId!!)
+        val recipe = recipeReactiveRepository.findById(command.recipeId).block()
 
-        if (!recipeOptional.isPresent) {
+        if (recipe == null) {
 
             //todo toss error if not found!
             log.error("Recipe not found for id: " + command.recipeId)
             return Mono.just(IngredientCommand())
         } else {
-            val recipe = recipeOptional.get()
 
             val ingredientOptional = recipe
                     .ingredients
@@ -104,7 +100,7 @@ class IngredientServiceImpl (private val ingredientToIngredientCommand: Ingredie
 
         log.debug("Deleting ingredient: $recipeId:$idToDelete")
 
-        val recipe = recipeRepository.findById(recipeId).get()
+        val recipe = recipeReactiveRepository.findById(recipeId).block()
 
         if (recipe != null) {
 
@@ -120,7 +116,7 @@ class IngredientServiceImpl (private val ingredientToIngredientCommand: Ingredie
                 log.debug("found Ingredient")
 
                 recipe.ingredients.remove(ingredientOptional.get())
-                recipeRepository.save(recipe)
+                recipeReactiveRepository.save(recipe).block()
             }
         } else {
             log.debug("Recipe Id Not found. Id:" + recipeId)

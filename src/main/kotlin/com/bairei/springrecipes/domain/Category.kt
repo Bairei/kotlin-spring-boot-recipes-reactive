@@ -8,5 +8,5 @@ import org.springframework.data.mongodb.core.mapping.Document
 class Category (
         @Id var id: String? = null,
         var description: String = "",
-        @DBRef var recipes: MutableSet<Recipe> = emptySet<Recipe>().toMutableSet()
+        var recipes: MutableSet<Recipe> = emptySet<Recipe>().toMutableSet()
 )

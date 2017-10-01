@@ -2,9 +2,7 @@ package com.bairei.springrecipes.services
 
 import com.bairei.springrecipes.converters.UnitOfMeasureToUnitOfMeasureCommand
 import com.bairei.springrecipes.domain.UnitOfMeasure
-import com.bairei.springrecipes.repositories.UnitOfMeasureRepository
 import com.bairei.springrecipes.repositories.reactive.UnitOfMeasureReactiveRepository
-import com.nhaarman.mockito_kotlin.verify
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test

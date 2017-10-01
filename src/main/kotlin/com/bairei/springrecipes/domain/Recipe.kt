@@ -18,16 +18,10 @@ class Recipe (@Id var id: String? = null,
               var ingredients: MutableSet<Ingredient> = emptySet<Ingredient>().toMutableSet(),
               var image: Binary = Binary(ByteArray(0)),
               var notes: Notes = Notes(),
-              @DBRef var categories: MutableSet<Category> = emptySet<Category>().toHashSet()
+              var categories: MutableSet<Category> = emptySet<Category>().toHashSet()
 ){
     fun addIngredient(ingredient: Ingredient): Recipe {
-//        ingredient.recipe = this
         this.ingredients.add(ingredient)
         return this
     }
-
-//    override fun toString(): String {
-//        return "[id=$id, description =$description, prepTime=$prepTime, cookTime=$cookTime, servings=$servings, source= $source," +
-//                " "
-//    }
 }

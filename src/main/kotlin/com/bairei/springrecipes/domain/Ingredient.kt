@@ -8,6 +8,6 @@ import java.util.*
 class Ingredient (@Id var id: String = UUID.randomUUID().toString(),
                   var description: String = "",
                   var amount: BigDecimal = BigDecimal.ZERO,
-                  @DBRef var uom: UnitOfMeasure = UnitOfMeasure()
+                  var uom: UnitOfMeasure = UnitOfMeasure()
 //                  var recipe: Recipe? = null
 )
