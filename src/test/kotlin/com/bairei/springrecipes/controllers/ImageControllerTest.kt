@@ -8,6 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.springframework.mock.web.MockHttpServletResponse
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import reactor.core.publisher.Mono
 
 
 class ImageControllerTest {
@@ -30,6 +32,12 @@ class ImageControllerTest {
     lateinit var controller : ImageController
 
     lateinit var mockMvc: MockMvc
+
+    private fun <T> any(): T {
+        Mockito.any<T>()
+        return uninitialized()
+    }
+    private fun <T> uninitialized(): T = null as T
 
     @Before
     @Throws(Exception::class)
@@ -48,7 +56,7 @@ class ImageControllerTest {
         val command = RecipeCommand()
         command.id = 1L.toString()
 
-        `when`(recipeService.findCommandById(anyString())).thenReturn(command)
+        `when`(recipeService.findCommandById(anyString())).thenReturn(Mono.just(command))
 
         //when
         mockMvc.perform(get("/recipe/1/image"))
@@ -65,11 +73,13 @@ class ImageControllerTest {
         val multipartFile = MockMultipartFile("imagefile", "testing.txt", "text/plain",
                 "Spring Framework Guru".toByteArray())
 
+//        `when`()
+
         mockMvc.perform(multipart("/recipe/1/image").file(multipartFile))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", "/recipe/1/show"))
 
-        verify(imageService, times(1)).saveImageFile(anyString(), com.nhaarman.mockito_kotlin.any())
+        verify(imageService, times(1)).saveImageFile(anyString(), any())
     }
 
     @Test
@@ -89,7 +99,7 @@ class ImageControllerTest {
 
         command.image = Binary(bytesBoxed)
 
-        `when`(recipeService.findCommandById(anyString())).thenReturn(command)
+        `when`(recipeService.findCommandById(anyString())).thenReturn(Mono.just(command))
 
         //when
         val response: MockHttpServletResponse = mockMvc.perform(get("/recipe/1/recipeimage"))

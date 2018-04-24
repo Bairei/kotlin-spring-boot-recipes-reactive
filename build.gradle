@@ -1,7 +1,7 @@
 buildscript {
 	ext {
-		kotlinVersion = '1.2.0-beta-31'
-		springBootVersion = '2.0.0.M4'
+		kotlinVersion = '1.2.40'
+		springBootVersion = '2.0.1.RELEASE'
 	}
 	repositories {
 		mavenCentral()
@@ -38,7 +38,6 @@ repositories {
 	mavenCentral()
 	maven { url "https://repo.spring.io/snapshot" }
 	maven { url "https://repo.spring.io/milestone" }
-	maven { url "http://dl.bintray.com/kotlin/kotlin-eap-1.2" }
 }
 
 configurations {
@@ -51,7 +50,7 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
 	compile('org.springframework.boot:spring-boot-starter-web')
 //	compile('org.springframework.boot:spring-boot-starter-webflux')
-	compile("org.jetbrains.kotlin:kotlin-stdlib-jre8:${kotlinVersion}")
+	compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
 	compile("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
 	runtime('org.springframework.boot:spring-boot-devtools')
     compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
@@ -61,13 +60,13 @@ dependencies {
 	compile('org.webjars:bootstrap:4.0.0-beta')
 	compile('org.webjars:jquery:3.2.1')
 	compile('org.webjars.bower:popper.js:1.12.5')
-	testCompile('com.nhaarman:mockito-kotlin-kt1.1:1.5.0')
+	testCompile ('org.mockito:mockito-core:2.+')
 	compile('org.springframework.boot:spring-boot-starter-tomcat')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('io.projectreactor:reactor-test:3.1.0.RELEASE')
 }
 
-//export test coverage
+// export test coverage
 jacocoTestReport {
 	reports {
 		xml.enabled true

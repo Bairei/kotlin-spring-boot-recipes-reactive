@@ -15,6 +15,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import reactor.core.publisher.Mono
@@ -99,7 +100,7 @@ class IngredientServiceImplTest {
         savedRecipe.ingredients.iterator().next().id = "3"
 
         `when`(recipeReactiveRepository.findById(anyString())).thenReturn(Mono.just(Recipe()))
-        `when`(recipeReactiveRepository.save(com.nhaarman.mockito_kotlin.any<Recipe>())).thenReturn(Mono.just(savedRecipe))
+        `when`(recipeReactiveRepository.save(Mockito.any<Recipe>())).thenReturn(Mono.just(savedRecipe))
 
         //when
         val savedCommand = ingredientService.saveIngredientCommand(command).block()
@@ -107,7 +108,7 @@ class IngredientServiceImplTest {
         //then
         assertEquals("3", savedCommand!!.id)
         verify(recipeReactiveRepository, times(1)).findById(anyString())
-        verify(recipeReactiveRepository, times(1)).save(com.nhaarman.mockito_kotlin.any<Recipe>())
+        verify(recipeReactiveRepository, times(1)).save(Mockito.any<Recipe>())
 
     }
 
@@ -121,13 +122,13 @@ class IngredientServiceImplTest {
         recipe.addIngredient(ingredient)
 
         `when`(recipeReactiveRepository.findById(anyString())).thenReturn(Mono.just(recipe))
-        `when`(recipeReactiveRepository.save(com.nhaarman.mockito_kotlin.any<Recipe>())).thenReturn(Mono.just(recipe))
+        `when`(recipeReactiveRepository.save(Mockito.any<Recipe>())).thenReturn(Mono.just(recipe))
 
         //when
         ingredientService.deleteById("1", "3")
 
         //then
         verify(recipeReactiveRepository, times(1)).findById(anyString())
-        verify(recipeReactiveRepository, times(1)).save(com.nhaarman.mockito_kotlin.any<Recipe>())
+        verify(recipeReactiveRepository, times(1)).save(Mockito.any<Recipe>())
     }
 }

@@ -43,7 +43,7 @@ class RecipeServiceIT {
 
         //when
         testRecipeCommand!!.description = NEW_DESCRIPTION
-        val savedRecipeCommand = recipeService.saveRecipeCommand(testRecipeCommand)
+        val savedRecipeCommand = recipeService.saveRecipeCommand(testRecipeCommand).block()
 
         //then
         assertEquals(NEW_DESCRIPTION, savedRecipeCommand.description)

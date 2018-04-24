@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux
 
 
 @Service
-class UnitOfMeasureServiceImpl(private val unitOfMeasureRepository: UnitOfMeasureReactiveRepository, private val unitOfMeasureToUnitOfMeasureCommand: UnitOfMeasureToUnitOfMeasureCommand) : UnitOfMeasureService {
+open class UnitOfMeasureServiceImpl(private val unitOfMeasureRepository: UnitOfMeasureReactiveRepository, private val unitOfMeasureToUnitOfMeasureCommand: UnitOfMeasureToUnitOfMeasureCommand) : UnitOfMeasureService {
 
     override fun listAllUoms(): Flux<UnitOfMeasureCommand> = unitOfMeasureRepository.findAll()
             .map(unitOfMeasureToUnitOfMeasureCommand::convert)

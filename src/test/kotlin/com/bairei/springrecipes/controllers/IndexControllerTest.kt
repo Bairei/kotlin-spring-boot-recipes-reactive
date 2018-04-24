@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.ui.Model
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 class IndexControllerTest {
 
@@ -52,9 +54,9 @@ class IndexControllerTest {
         recipe.id = "4"
         recipes.add(recipe)
 
-        `when`(recipeService.findAll()).thenReturn(recipes)
+        `when`(recipeService.findAll()).thenReturn(Flux.fromIterable(recipes))
 
-        val argumentCaptor = ArgumentCaptor.forClass(Set::class.java)
+        val argumentCaptor = ArgumentCaptor.forClass(ArrayList::class.java)
 
         //when
         val viewName = indexController.getIndexPage(model)
@@ -63,8 +65,8 @@ class IndexControllerTest {
         assertEquals(viewName, "index")
         verify(recipeService, times(1)).findAll()
         verify(model, times(1)).addAttribute(eq("recipes"), argumentCaptor.capture())
-        val setInController = argumentCaptor.value
-        assertEquals(2, setInController.size)
+        val recipeList = argumentCaptor.value
+        assertEquals(2, recipeList.size)
     }
 
 }

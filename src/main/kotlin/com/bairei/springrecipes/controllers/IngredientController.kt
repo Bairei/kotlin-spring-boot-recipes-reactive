@@ -24,7 +24,7 @@ class IngredientController constructor(private val recipeService: RecipeService,
         log.debug("Getting ingredient list for recipe id " + recipeId)
 
         // use command object to avoid lazy load errors in Thymeleaf.
-        model.addAttribute("recipe", recipeService.findCommandById(recipeId))
+        model.addAttribute("recipe", recipeService.findCommandById(recipeId)?.block())
         return "recipe/ingredient/list"
     }
 
@@ -51,7 +51,7 @@ class IngredientController constructor(private val recipeService: RecipeService,
     @GetMapping("recipe/{recipeId}/ingredient/new")
     fun newRecipe(@PathVariable recipeId: String, model: Model) : String {
         // making sure we have a good id value
-        val recipeCommand = recipeService.findCommandById(recipeId)
+        val recipeCommand = recipeService.findCommandById(recipeId)?.block()
         // todo raise exception if null
 
         // need to return back parent id for hidden form property

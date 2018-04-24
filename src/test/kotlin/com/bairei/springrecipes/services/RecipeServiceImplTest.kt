@@ -1,28 +1,28 @@
 package com.bairei.springrecipes.services
 
+import com.bairei.springrecipes.commands.RecipeCommand
 import com.bairei.springrecipes.converters.RecipeCommandToRecipe
 import com.bairei.springrecipes.converters.RecipeToRecipeCommand
 import com.bairei.springrecipes.domain.Recipe
-import com.bairei.springrecipes.repositories.RecipeRepository
-import org.junit.Test
-
-import org.junit.Assert.*
+import com.bairei.springrecipes.exceptions.NotFoundException
+import com.bairei.springrecipes.repositories.reactive.RecipeReactiveRepository
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
-import org.mockito.ArgumentMatchers
+import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.*
-import org.mockito.ArgumentMatchers.anyLong
-import com.bairei.springrecipes.commands.RecipeCommand
-import com.bairei.springrecipes.exceptions.NotFoundException
 
 class RecipeServiceImplTest {
 
     lateinit var recipeService: RecipeServiceImpl
 
     @Mock
-    lateinit var recipeRepository: RecipeRepository
+    lateinit var recipeRepository: RecipeReactiveRepository
 
     @Mock
     lateinit var recipeToCommand : RecipeToRecipeCommand
@@ -46,11 +46,11 @@ class RecipeServiceImplTest {
         val recipesData = HashSet<Recipe>()
         recipesData.add(recipe)
 
-        `when`(recipeService.findAll()).thenReturn(recipesData)
+        `when`(recipeService.findAll()).thenReturn(Flux.just(recipe))
 
-        val recipes: Set<Recipe> = recipeService.findAll()
+        val recipes = recipeService.findAll()?.collectList()?.block()
 
-        assertEquals(recipes.size, 1)
+        assertEquals(recipes?.size, 1)
         verify(recipeRepository, times(1)).findAll()
     }
 
@@ -58,29 +58,14 @@ class RecipeServiceImplTest {
     fun getRecipeByIdTest() {
         val recipe = Recipe()
         recipe.id = "1"
-        val recipeOptional = Optional.of(recipe)
 
+        `when`(recipeRepository.findById(anyString())).thenReturn(Mono.just(recipe))
 
-        `when`(recipeRepository.findById(anyString())).thenReturn(recipeOptional)
-
-        val recipeReturned = recipeService.findById("1")
+        val recipeReturned = recipeService.findById("1").block()
 
         assertNotNull("Null recipe returned", recipeReturned)
         verify(recipeRepository, times(1)).findById(anyString())
         verify(recipeRepository, never()).findAll()
-    }
-
-    @Test(expected = NotFoundException::class)
-    @Throws(Exception::class)
-    fun getRecipeByIdTestNotFound() {
-
-        val recipeOptional = Optional.empty<Recipe>()
-
-        `when`(recipeRepository.findById(anyString())).thenReturn(recipeOptional)
-
-        val recipeReturned = recipeService.findById("1")
-
-        //should go boom
     }
 
     @Test
@@ -88,9 +73,8 @@ class RecipeServiceImplTest {
     fun getRecipeCommandByIdTest() {
         val recipe = Recipe()
         recipe.id = "1"
-        val recipeOptional = Optional.of(recipe)
 
-        `when`(recipeRepository.findById(anyString())).thenReturn(recipeOptional)
+        `when`(recipeRepository.findById(anyString())).thenReturn(Mono.just(recipe))
 
         val recipeCommand = RecipeCommand()
         recipeCommand.id = "1"

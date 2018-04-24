@@ -19,7 +19,7 @@ class ImageController (private val imageService: ImageService,
 
     @GetMapping("/recipe/{id}/image")
     fun showUploadForm(@PathVariable id: String, model: Model): String{
-        model.addAttribute("recipe", recipeService.findCommandById(id))
+        model.addAttribute("recipe", recipeService.findCommandById(id)?.block())
 
         return "recipe/imageuploadform"
     }
@@ -34,7 +34,7 @@ class ImageController (private val imageService: ImageService,
 
     @GetMapping("recipe/{id}/recipeimage")
     fun renderImageFromDB(@PathVariable id: String, response: HttpServletResponse){
-        val recipeCommand = recipeService.findCommandById(id)
+        val recipeCommand = recipeService.findCommandById(id)?.block()
 
         if(recipeCommand!!.image.data.isNotEmpty()){
             val byteArray = ByteArray(recipeCommand.image.data.size)

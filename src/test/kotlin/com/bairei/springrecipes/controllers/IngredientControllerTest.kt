@@ -9,6 +9,7 @@ import com.bairei.springrecipes.services.UnitOfMeasureService
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.springframework.http.MediaType
@@ -36,6 +37,12 @@ class IngredientControllerTest {
 
     lateinit var mockMvc: MockMvc
 
+    private fun <T> any(): T {
+        Mockito.any<T>()
+        return uninitialized()
+    }
+    private fun <T> uninitialized(): T = null as T
+
     @Before
     @Throws(Exception::class)
     fun setUp() {
@@ -49,7 +56,7 @@ class IngredientControllerTest {
     fun testListIngredients() {
         // given
         val recipeCommand = RecipeCommand()
-       `when`(recipeService.findCommandById(anyString())).thenReturn(recipeCommand)
+       `when`(recipeService.findCommandById(anyString())).thenReturn(Mono.just(recipeCommand))
 
         // when
         mockMvc.perform(get("/recipe/1/ingredients"))
@@ -84,7 +91,7 @@ class IngredientControllerTest {
         recipeCommand.id = "1"
 
         // when
-        `when`(recipeService.findCommandById(anyString())).thenReturn(recipeCommand)
+        `when`(recipeService.findCommandById(anyString())).thenReturn(Mono.just(recipeCommand))
         `when`(unitOfMeasureService.listAllUoms()).thenReturn(Flux.just(UnitOfMeasureCommand()))
 
         // then
@@ -135,7 +142,7 @@ class IngredientControllerTest {
         command.recipeId = "2"
 
         //when
-        `when`(ingredientService.saveIngredientCommand(com.nhaarman.mockito_kotlin.any())).thenReturn(Mono.just(command))
+        `when`(ingredientService.saveIngredientCommand(any())).thenReturn(Mono.just(command))
 
         //then
         mockMvc.perform(post("/recipe/2/ingredient")

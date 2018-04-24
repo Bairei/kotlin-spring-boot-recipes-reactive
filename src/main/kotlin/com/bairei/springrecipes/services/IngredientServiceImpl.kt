@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
 
 
 @Service
-class IngredientServiceImpl (private val ingredientToIngredientCommand: IngredientToIngredientCommand,
+open class IngredientServiceImpl (private val ingredientToIngredientCommand: IngredientToIngredientCommand,
                              private val ingredientCommandToIngredient: IngredientCommandToIngredient,
                              private val unitOfMeasureRepository: UnitOfMeasureReactiveRepository,
                              private val recipeReactiveRepository: RecipeReactiveRepository) : IngredientService {

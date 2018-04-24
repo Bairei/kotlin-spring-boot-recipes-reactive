@@ -1,23 +1,22 @@
 package com.bairei.springrecipes.services
 
 import com.bairei.springrecipes.domain.Recipe
-import com.bairei.springrecipes.repositories.RecipeRepository
+import com.bairei.springrecipes.repositories.reactive.RecipeReactiveRepository
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import org.springframework.mock.web.MockMultipartFile
-import java.util.*
+import reactor.core.publisher.Mono
 
 
 class ImageServiceImplTest {
 
     @Mock
-    lateinit var recipeRepository: RecipeRepository
+    lateinit var recipeRepository: RecipeReactiveRepository
 
     lateinit var imageService: ImageService
 
@@ -39,9 +38,9 @@ class ImageServiceImplTest {
 
         val recipe = Recipe()
         recipe.id = id
-        val recipeOptional = Optional.of(recipe)
 
-        `when`(recipeRepository.findById(anyString())).thenReturn(recipeOptional)
+        `when`(recipeRepository.findById(anyString())).thenReturn(Mono.just(recipe))
+        `when`(recipeRepository.save(any(Recipe::class.java))).thenReturn(Mono.just(recipe))
 
         val argumentCaptor = ArgumentCaptor.forClass(Recipe::class.java)
 
@@ -49,7 +48,7 @@ class ImageServiceImplTest {
         imageService.saveImageFile(id, multipartFile)
 
         //then
-        verify<RecipeRepository>(recipeRepository, times(1)).save(argumentCaptor.capture())
+        verify<RecipeReactiveRepository>(recipeRepository, times(1)).save(argumentCaptor.capture())
         val savedRecipe = argumentCaptor.value
         assertEquals(multipartFile.bytes.size.toLong(), savedRecipe.image.data.size.toLong())
     }
