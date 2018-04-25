@@ -9,7 +9,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
+import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 
 @Controller
 class IngredientController constructor(private val recipeService: RecipeService,
@@ -17,14 +19,19 @@ class IngredientController constructor(private val recipeService: RecipeService,
                                        private val unitOfMeasureService: UnitOfMeasureService) {
 
     private val log: Logger = LoggerFactory.getLogger(IngredientController::class.java)
+    private lateinit var webDataBinder: WebDataBinder
 
+    @InitBinder("ingredient")
+    fun initBinder(webDataBinder: WebDataBinder) {
+        this.webDataBinder = webDataBinder
+    }
 
     @GetMapping("/recipe/{recipeId}/ingredients")
     fun listIngredients(@PathVariable recipeId: String, model: Model): String {
         log.debug("Getting ingredient list for recipe id " + recipeId)
 
         // use command object to avoid lazy load errors in Thymeleaf.
-        model.addAttribute("recipe", recipeService.findCommandById(recipeId)?.block())
+        model.addAttribute("recipe", recipeService.findCommandById(recipeId))
         return "recipe/ingredient/list"
     }
 
@@ -32,7 +39,7 @@ class IngredientController constructor(private val recipeService: RecipeService,
     @GetMapping("/recipe/{recipeId}/ingredient/{id}/show")
     fun showRecipeIngredient(@PathVariable recipeId: String,
                              @PathVariable id: String, model: Model) : String{
-        model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id).block())
+        model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id))
         return "recipe/ingredient/show"
     }
 
@@ -42,7 +49,6 @@ class IngredientController constructor(private val recipeService: RecipeService,
                                model: Model) : String{
         log.debug("#### $id #### $recipeId ####")
         model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id).block())
-        model.addAttribute("uomList", unitOfMeasureService.listAllUoms().collectList().block())
 
         return "recipe/ingredient/ingredientform"
     }
@@ -61,8 +67,6 @@ class IngredientController constructor(private val recipeService: RecipeService,
 
         // init uom
         ingredientCommand.uom = UnitOfMeasureCommand()
-        model.addAttribute("uomList", unitOfMeasureService.listAllUoms().collectList().block())
-
         return "recipe/ingredient/ingredientform"
     }
 
@@ -77,14 +81,27 @@ class IngredientController constructor(private val recipeService: RecipeService,
 
 
     @PostMapping("/recipe/{recipeId}/ingredient")
-    fun saveOrUpdate(@ModelAttribute command: IngredientCommand) : String{
+    fun saveOrUpdate(@ModelAttribute("ingredient") command: IngredientCommand, @PathVariable recipeId: String,
+                     model: Model) : String {
+
+        webDataBinder.validate()
+        val bindingResult = webDataBinder.bindingResult
+
+        if(bindingResult.hasErrors()){
+            bindingResult.allErrors.forEach({objecterror -> log.debug(objecterror.toString())})
+            return "recipe/ingredient/ingredientform"
+        }
+
         log.debug("#### ${command.id} #### ${command.recipeId} ####")
-        val savedCommand = ingredientService.saveIngredientCommand(command).block()!!
+        val savedCommand = ingredientService.saveIngredientCommand(command).block()
 
         log.debug("saved recipe id: " + savedCommand.recipeId)
         log.debug("saved ingredient id: " + savedCommand.id)
 
         return "redirect:/recipe/${savedCommand.recipeId}/ingredient/${savedCommand.id}/show"
     }
+
+    @ModelAttribute("uomList")
+    fun populateUomList(): Flux<UnitOfMeasureCommand> = unitOfMeasureService.listAllUoms()
 
 }

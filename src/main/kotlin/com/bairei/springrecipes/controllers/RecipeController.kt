@@ -11,8 +11,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
+import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.ModelAndView
+import org.thymeleaf.exceptions.TemplateInputException
 import javax.validation.Valid
 
 /**
@@ -22,16 +23,21 @@ import javax.validation.Valid
 class RecipeController @Autowired constructor(val recipeService: RecipeService){
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+    private lateinit var webDataBinder: WebDataBinder
 
+
+    @InitBinder
+    fun initBinder(webDataBinder: WebDataBinder) {
+        this.webDataBinder = webDataBinder
+    }
 
     @GetMapping("/recipe/{id}/show")
     fun showById(@PathVariable id: String, model:Model) : String {
         log.info(recipeService.findById(id)?.block().toString())
-        model.addAttribute("recipe", recipeService.findById(id)?.block())
+        model.addAttribute("recipe", recipeService.findById(id))
 
         return "recipe/show"
     }
-
 
     @GetMapping("recipe/new")
     fun newRecipe(model : Model) : String {
@@ -39,16 +45,16 @@ class RecipeController @Autowired constructor(val recipeService: RecipeService){
         return RECIPE_RECIPEFORM_URL
     }
 
-
     @GetMapping("recipe/{id}/update")
     fun updateRecipe (@PathVariable id: String, model: Model): String {
         model.addAttribute("recipe", recipeService.findCommandById(id)?.block())
         return RECIPE_RECIPEFORM_URL
     }
 
-
     @PostMapping("recipe")
-    fun saveOrUpdate(@Valid @ModelAttribute("recipe") command : RecipeCommand, bindingResult: BindingResult) : String {
+    fun saveOrUpdate(@ModelAttribute("recipe") command : RecipeCommand) : String {
+        webDataBinder.validate()
+        val bindingResult = webDataBinder.bindingResult
 
         if(bindingResult.hasErrors()){
             bindingResult.allErrors.forEach({objecterror -> log.debug(objecterror.toString())})
@@ -60,7 +66,6 @@ class RecipeController @Autowired constructor(val recipeService: RecipeService){
         return "redirect:/recipe/${savedCommand.id}/show"
     }
 
-
     @GetMapping("recipe/{id}/delete")
     fun deleteRecipe(@PathVariable id: String): String{
         recipeService.deleteById(id)?.block()
@@ -69,18 +74,17 @@ class RecipeController @Autowired constructor(val recipeService: RecipeService){
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(NotFoundException::class)
-    fun handleNotFound(ex: Exception) : ModelAndView{
+    @ExceptionHandler(NotFoundException::class, TemplateInputException::class)
+    fun handleNotFound(ex: Exception, model: Model) : String{
         log.error("Handling not found exception")
         log.error(ex.message)
-        val modelAndView = ModelAndView()
-        modelAndView.viewName = "404error"
-        modelAndView.addObject("exception", ex)
-        return modelAndView
+
+        model.addAttribute("exception", ex)
+        return "404error"
     }
 
     companion object {
-        val RECIPE_RECIPEFORM_URL = "recipe/recipeform"
+        const val RECIPE_RECIPEFORM_URL = "recipe/recipeform"
     }
 
 }

@@ -32,22 +32,22 @@ class ImageController (private val imageService: ImageService,
         return "redirect:/recipe/$id/show"
     }
 
-    @GetMapping("recipe/{id}/recipeimage")
-    fun renderImageFromDB(@PathVariable id: String, response: HttpServletResponse){
-        val recipeCommand = recipeService.findCommandById(id)?.block()
-
-        if(recipeCommand!!.image.data.isNotEmpty()){
-            val byteArray = ByteArray(recipeCommand.image.data.size)
-
-            var i = 0
-            for (wrappedByte in recipeCommand.image.data){
-                byteArray[i++] = wrappedByte
-            }
-
-        response.contentType = "image/jpeg"
-        val inputStream = ByteArrayInputStream(byteArray)
-        IOUtils.copy(inputStream, response.outputStream)
-        }
-    }
+//    @GetMapping("recipe/{id}/recipeimage")
+//    fun renderImageFromDB(@PathVariable id: String, response: HttpServletResponse){
+//        val recipeCommand = recipeService.findCommandById(id)?.block()
+//
+//        if(recipeCommand!!.image.data.isNotEmpty()){
+//            val byteArray = ByteArray(recipeCommand.image.data.size)
+//
+//            var i = 0
+//            for (wrappedByte in recipeCommand.image.data){
+//                byteArray[i++] = wrappedByte
+//            }
+//
+//        response.contentType = "image/jpeg"
+//        val inputStream = ByteArrayInputStream(byteArray)
+//        IOUtils.copy(inputStream, response.outputStream)
+//        }
+//    }
 
 }
